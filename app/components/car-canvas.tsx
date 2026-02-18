@@ -15,13 +15,14 @@ function CarModel({ scrollProgress }: CarModelProps) {
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
-    const targetY = MathUtils.lerp(0.45, -1.15, scrollProgress);
+    const clamped = MathUtils.clamp(scrollProgress, 0, 1);
+    const targetY = MathUtils.lerp(0.45, Math.PI, clamped);
     groupRef.current.rotation.y = MathUtils.damp(groupRef.current.rotation.y, targetY, 4, delta);
   });
 
   return (
     <group ref={groupRef} position={[0, -1.25, 0]}>
-      <primitive object={gltf.scene} scale={1.03} />
+      <primitive object={gltf.scene} scale={1.7} />
     </group>
   );
 }
@@ -29,7 +30,7 @@ function CarModel({ scrollProgress }: CarModelProps) {
 export default function CarCanvas({ scrollProgress }: CarModelProps) {
   return (
     <div className="h-full w-full">
-      <Canvas camera={{ position: [4.8, 1.8, 5.7], fov: 31 }}>
+      <Canvas camera={{ position: [7, -0.2, 5.7], fov: 31 }}>
         <ambientLight intensity={0.65} />
         <directionalLight position={[8, 11, 5]} intensity={1.55} />
         <directionalLight position={[-6, 4, -5]} intensity={0.45} />

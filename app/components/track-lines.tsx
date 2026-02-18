@@ -11,8 +11,8 @@ const TrackLines = forwardRef<HTMLDivElement, TrackLinesProps>(function TrackLin
   const isOne = variant === "one";
 
   const wrapperClass = isOne
-    ? "left-[-34vw] bottom-[4vh] h-[36vh] w-[230vw] [transform:perspective(1100px)_rotateX(72deg)_rotateZ(-45deg)_skewX(-4deg)] max-[960px]:left-[-46vw] max-[960px]:bottom-[9vh] max-[960px]:h-[30vh] max-[960px]:w-[280vw] max-[960px]:[transform:perspective(820px)_rotateX(74deg)_rotateZ(-45deg)]"
-    : "left-[24vw] bottom-[-9vh] h-[30vh] w-[210vw] [transform:perspective(980px)_rotateX(72deg)_rotateZ(-45deg)_skewX(-3deg)] max-[960px]:left-[16vw] max-[960px]:bottom-[-3vh] max-[960px]:h-[24vh] max-[960px]:w-[280vw] max-[960px]:[transform:perspective(780px)_rotateX(74deg)_rotateZ(-45deg)]";
+    ? "left-[-84vw] bottom-[16vh] h-[36vh] w-[230vw] [transform:perspective(1100px)_rotateX(72deg)_rotateZ(-25deg)_skewX(-4deg)] max-[960px]:left-[-94vw] max-[960px]:bottom-[30vh] max-[960px]:h-[30vh] max-[960px]:w-[280vw] max-[960px]:[transform:perspective(820px)_rotateX(74deg)_rotateZ(-25deg)]"
+    : "left-[10vw] bottom-[0vh] h-[30vh] w-[210vw] [transform:perspective(980px)_rotateX(72deg)_rotateZ(-25deg)_skewX(-3deg)] max-[960px]:left-[4vw] max-[960px]:bottom-[4vh] max-[960px]:h-[24vh] max-[960px]:w-[280vw] max-[960px]:[transform:perspective(780px)_rotateX(74deg)_rotateZ(-25deg)]";
 
   const mainStyle = {
     background:
@@ -33,6 +33,12 @@ const TrackLines = forwardRef<HTMLDivElement, TrackLinesProps>(function TrackLin
       ref={ref}
       aria-hidden="true"
       className={`pointer-events-none absolute z-0 ${wrapperClass}`}
+      style={{
+        WebkitMaskImage:
+          "radial-gradient(130% 120% at 50% 100%, rgba(0,0,0,1) 52%, rgba(0,0,0,0.78) 68%, transparent 90%)",
+        maskImage:
+          "radial-gradient(130% 120% at 50% 100%, rgba(0,0,0,1) 52%, rgba(0,0,0,0.78) 68%, transparent 90%)",
+      }}
     >
       <div
         className="absolute inset-0 opacity-95"
