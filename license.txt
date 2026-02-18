@@ -1,0 +1,11 @@
+Model Information:
+* title:	BMW M4 GT3 | www.vecarz.com
+* source:	https://sketchfab.com/3d-models/bmw-m4-gt3-wwwvecarzcom-f3f82f01759a473b8e5110a628582658
+* author:	vecarz (https://sketchfab.com/heynic)
+
+Model License:
+* license type:	CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
+* requirements:	Author must be credited. No commercial use. Modified versions must have the same license.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "BMW M4 GT3 | www.vecarz.com" (https://sketchfab.com/3d-models/bmw-m4-gt3-wwwvecarzcom-f3f82f01759a473b8e5110a628582658) by vecarz (https://sketchfab.com/heynic) licensed under CC-BY-NC-SA-4.0 (http://creativecommons.org/licenses/by-nc-sa/4.0/)
