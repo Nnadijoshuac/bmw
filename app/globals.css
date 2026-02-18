@@ -71,9 +71,9 @@ body {
   isolation: isolate;
   --parallax-x: 0px;
   --parallax-y: 0px;
-  --light-x: 52%;
-  --light-y: 38%;
-  --light-strength: 0.85;
+  --light-x: 28%;
+  --light-y: 30%;
+  --light-strength: 0.92;
 }
 
 .hero::after {
@@ -82,9 +82,9 @@ body {
   inset: -8% -8% -12% -8%;
   background: radial-gradient(
     circle at var(--light-x) var(--light-y),
-    rgba(255, 255, 255, calc(var(--light-strength) * 0.42)) 0%,
-    rgba(255, 255, 255, calc(var(--light-strength) * 0.2)) 14%,
-    rgba(255, 255, 255, 0) 44%
+    rgba(255, 255, 255, calc(var(--light-strength) * 0.36)) 0%,
+    rgba(255, 255, 255, calc(var(--light-strength) * 0.18)) 20%,
+    rgba(255, 255, 255, 0) 60%
   );
   mix-blend-mode: soft-light;
   pointer-events: none;
@@ -227,9 +227,9 @@ body {
   display: block;
   transform: scale(1.16);
   transform-origin: right 56%;
-  filter: brightness(calc(0.92 + (var(--light-strength) * 0.2)))
-    contrast(calc(0.98 + (var(--light-strength) * 0.12)))
-    saturate(calc(0.94 + (var(--light-strength) * 0.14)));
+  filter: brightness(calc(0.87 + (var(--light-strength) * 0.07)))
+    contrast(calc(0.96 + (var(--light-strength) * 0.045)))
+    saturate(calc(0.92 + (var(--light-strength) * 0.07)));
   transition: transform 420ms ease, filter 420ms ease;
 }
 
