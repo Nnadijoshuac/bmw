@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useLayoutEffect, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, useGLTF } from "@react-three/drei";
 import { MathUtils, PerspectiveCamera } from "three";
@@ -69,8 +69,29 @@ type CarCanvasProps = {
   scrollProgress: number;
 };
 
+const START_CAMERA = { x: 6.4, y: 1, z: 8.9, fov: 20 } as const;
+const ZOOM_CAMERA = { x: 6.36, y: 1, z: 8.84, fov: 19.95 } as const;
+const FOCUS_POINT = { x: -2, y: 0.9, z: -8 } as const;
+const START_LOOK_POINT = { x: -2.6, y: 0.4, z: -5 } as const;
+const ZOOM_LOOK_POINT = { x: -2.58, y: 0.41, z: -5.08 } as const;
+const END_LOOK_POINT = { x: 12, y: 0.9, z: -5 } as const;
+const FORWARD_TRAVEL_MAX = 3.2;
+
 function CameraRig({ scrollProgress }: CarCanvasProps) {
   const { camera } = useThree();
+  const lookRef = useRef<{ x: number; y: number; z: number }>({
+    x: START_LOOK_POINT.x,
+    y: START_LOOK_POINT.y,
+    z: START_LOOK_POINT.z,
+  });
+
+  useLayoutEffect(() => {
+    if (!(camera instanceof PerspectiveCamera)) return;
+    camera.position.set(START_CAMERA.x, START_CAMERA.y, START_CAMERA.z);
+    camera.fov = START_CAMERA.fov;
+    camera.lookAt(START_LOOK_POINT.x, START_LOOK_POINT.y, START_LOOK_POINT.z);
+    camera.updateProjectionMatrix();
+  }, [camera]);
 
   useFrame((_, delta) => {
     if (!(camera instanceof PerspectiveCamera)) return;
@@ -79,42 +100,60 @@ function CameraRig({ scrollProgress }: CarCanvasProps) {
     const zoomPhase = MathUtils.clamp(p / 0.28, 0, 1);
     const orbitPhase = MathUtils.clamp((p - 0.28) / 0.72, 0, 1);
 
-    const startX = 5;
-    const startY = 1;
-    const startZ = 10;
-    const startFov = 20;
+    const startX = START_CAMERA.x;
+    const startY = START_CAMERA.y;
+    const startZ = START_CAMERA.z;
+    const startFov = START_CAMERA.fov;
 
-    const zoomX = 4.2;
-    const zoomY = 1;
-    const zoomZ = 8.4;
-    const zoomFov = 18.2;
+    const zoomX = ZOOM_CAMERA.x;
+    const zoomY = ZOOM_CAMERA.y;
+    const zoomZ = ZOOM_CAMERA.z;
+    const zoomFov = ZOOM_CAMERA.fov;
 
-    const focusX = 0;
-    const focusY = -0.8;
-    const focusZ = -5;
+    const focusX = FOCUS_POINT.x;
+    const focusY = FOCUS_POINT.y;
+    const focusZ = FOCUS_POINT.z;
 
-    const preOrbitX = MathUtils.lerp(startX, zoomX, zoomPhase);
-    const targetY = MathUtils.lerp(startY, zoomY, zoomPhase);
-    const preOrbitZ = MathUtils.lerp(startZ, zoomZ, zoomPhase);
-    const targetFov = MathUtils.lerp(startFov, zoomFov, zoomPhase);
+    const zoomT = MathUtils.smoothstep(zoomPhase, 0, 1);
+    const preOrbitX = MathUtils.lerp(startX, zoomX, zoomT);
+    const preOrbitY = MathUtils.lerp(startY, zoomY, zoomT);
+    const preOrbitZ = MathUtils.lerp(startZ, zoomZ, zoomT);
+    const targetFov = MathUtils.lerp(startFov, zoomFov, zoomT);
 
     const orbitRadius = Math.hypot(zoomX - focusX, zoomZ - focusZ);
     const orbitStartAngle = Math.atan2(zoomZ - focusZ, zoomX - focusX);
-    const orbitEndAngle = orbitStartAngle + 0.95;
+    const orbitEndAngle = orbitStartAngle + 2.1;
     const orbitAngle = MathUtils.lerp(orbitStartAngle, orbitEndAngle, orbitPhase);
 
     const orbitX = focusX + orbitRadius * Math.cos(orbitAngle);
     const orbitZ = focusZ + orbitRadius * Math.sin(orbitAngle);
 
     const targetX = MathUtils.lerp(preOrbitX, orbitX, orbitPhase);
-    const targetZ = MathUtils.lerp(preOrbitZ, orbitZ, orbitPhase);
+    const targetY = MathUtils.lerp(preOrbitY, preOrbitY + 1.1, orbitPhase);
+    const targetZBase = MathUtils.lerp(preOrbitZ, orbitZ, orbitPhase);
+    const forwardTravel = MathUtils.lerp(0, FORWARD_TRAVEL_MAX, MathUtils.smoothstep(p, 0, 1));
+    const targetZ = targetZBase + forwardTravel;
 
     camera.position.x = MathUtils.damp(camera.position.x, targetX, 4.2, delta);
     camera.position.y = MathUtils.damp(camera.position.y, targetY, 4.2, delta);
     camera.position.z = MathUtils.damp(camera.position.z, targetZ, 4.2, delta);
     camera.fov = MathUtils.damp(camera.fov, targetFov, 4.2, delta);
 
-    camera.lookAt(focusX, focusY, focusZ);
+    // Keep the opening framing through zoom, then ease into orbit tracking.
+    const preOrbitLookX = MathUtils.lerp(START_LOOK_POINT.x, ZOOM_LOOK_POINT.x, zoomT);
+    const preOrbitLookY = MathUtils.lerp(START_LOOK_POINT.y, ZOOM_LOOK_POINT.y, zoomT);
+    const preOrbitLookZ = MathUtils.lerp(START_LOOK_POINT.z, ZOOM_LOOK_POINT.z, zoomT);
+    const lookBlendRaw = MathUtils.clamp((orbitPhase - 0.12) / 0.88, 0, 1);
+    const lookBlend = MathUtils.smootherstep(lookBlendRaw, 0, 1);
+    const desiredLookX = MathUtils.lerp(preOrbitLookX, END_LOOK_POINT.x, lookBlend);
+    const desiredLookY = MathUtils.lerp(preOrbitLookY, END_LOOK_POINT.y, lookBlend);
+    const desiredLookZ = MathUtils.lerp(preOrbitLookZ, END_LOOK_POINT.z, lookBlend);
+
+    lookRef.current.x = MathUtils.damp(lookRef.current.x, desiredLookX, 3.4, delta);
+    lookRef.current.y = MathUtils.damp(lookRef.current.y, desiredLookY, 3.4, delta);
+    lookRef.current.z = MathUtils.damp(lookRef.current.z, desiredLookZ, 3.4, delta);
+
+    camera.lookAt(lookRef.current.x, lookRef.current.y, lookRef.current.z);
     camera.updateProjectionMatrix();
   });
 
@@ -124,7 +163,14 @@ function CameraRig({ scrollProgress }: CarCanvasProps) {
 export default function CarCanvas({ scrollProgress }: CarCanvasProps) {
   return (
     <div className="h-full w-full">
-      <Canvas shadows dpr={[1, 1.5]} camera={{ position: [5, 1, 10], fov: 20 }}>
+      <Canvas
+        shadows
+        dpr={[1, 1.5]}
+        camera={{
+          position: [START_CAMERA.x, START_CAMERA.y, START_CAMERA.z],
+          fov: START_CAMERA.fov,
+        }}
+      >
         <color attach="background" args={["#e4e4e4"]} />
         <hemisphereLight args={["#ffffff", "#d1eaff", 0.46]} />
         <ambientLight intensity={0.24} />
