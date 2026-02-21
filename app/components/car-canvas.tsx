@@ -1,9 +1,9 @@
 "use client";
 
 import { Suspense, useEffect } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { ContactShadows, Environment, useGLTF } from "@react-three/drei";
-import { MathUtils } from "three";
+import { MathUtils, PerspectiveCamera } from "three";
 
 function CarModel() {
   const gltf = useGLTF("/scene.gltf");
@@ -65,7 +65,63 @@ function LeftTrackDetails() {
   );
 }
 
-export default function CarCanvas() {
+type CarCanvasProps = {
+  scrollProgress: number;
+};
+
+function CameraRig({ scrollProgress }: CarCanvasProps) {
+  const { camera } = useThree();
+
+  useFrame((_, delta) => {
+    if (!(camera instanceof PerspectiveCamera)) return;
+
+    const p = MathUtils.clamp(scrollProgress, 0, 1);
+    const zoomPhase = MathUtils.clamp(p / 0.28, 0, 1);
+    const orbitPhase = MathUtils.clamp((p - 0.28) / 0.72, 0, 1);
+
+    const startX = 5;
+    const startY = 1;
+    const startZ = 10;
+    const startFov = 20;
+
+    const zoomX = 4.2;
+    const zoomY = 1;
+    const zoomZ = 8.4;
+    const zoomFov = 18.2;
+
+    const focusX = 0;
+    const focusY = -0.8;
+    const focusZ = -5;
+
+    const preOrbitX = MathUtils.lerp(startX, zoomX, zoomPhase);
+    const targetY = MathUtils.lerp(startY, zoomY, zoomPhase);
+    const preOrbitZ = MathUtils.lerp(startZ, zoomZ, zoomPhase);
+    const targetFov = MathUtils.lerp(startFov, zoomFov, zoomPhase);
+
+    const orbitRadius = Math.hypot(zoomX - focusX, zoomZ - focusZ);
+    const orbitStartAngle = Math.atan2(zoomZ - focusZ, zoomX - focusX);
+    const orbitEndAngle = orbitStartAngle + 0.95;
+    const orbitAngle = MathUtils.lerp(orbitStartAngle, orbitEndAngle, orbitPhase);
+
+    const orbitX = focusX + orbitRadius * Math.cos(orbitAngle);
+    const orbitZ = focusZ + orbitRadius * Math.sin(orbitAngle);
+
+    const targetX = MathUtils.lerp(preOrbitX, orbitX, orbitPhase);
+    const targetZ = MathUtils.lerp(preOrbitZ, orbitZ, orbitPhase);
+
+    camera.position.x = MathUtils.damp(camera.position.x, targetX, 4.2, delta);
+    camera.position.y = MathUtils.damp(camera.position.y, targetY, 4.2, delta);
+    camera.position.z = MathUtils.damp(camera.position.z, targetZ, 4.2, delta);
+    camera.fov = MathUtils.damp(camera.fov, targetFov, 4.2, delta);
+
+    camera.lookAt(focusX, focusY, focusZ);
+    camera.updateProjectionMatrix();
+  });
+
+  return null;
+}
+
+export default function CarCanvas({ scrollProgress }: CarCanvasProps) {
   return (
     <div className="h-full w-full">
       <Canvas shadows dpr={[1, 1.5]} camera={{ position: [5, 1, 10], fov: 20 }}>
@@ -88,6 +144,7 @@ export default function CarCanvas() {
         <directionalLight position={[-10, 4, 5]} intensity={0.56} />
         <directionalLight position={[2, 3, -12]} intensity={0.48} color="#ffffff" />
         <Suspense fallback={null}>
+          <CameraRig scrollProgress={scrollProgress} />
           <LeftTrackDetails />
           <CarModel />
           <Environment preset="warehouse" />
