@@ -16,3 +16,18 @@ body {
   overflow-x: hidden;
   background: linear-gradient(120deg, var(--bg-start), var(--bg-end));
 }
+
+.font-race {
+  font-family:
+    "Eurostile Next LT Com Bold Extended",
+    "Eurostile Next LT Com",
+    "Eurostile",
+    "Microgramma D Extended",
+    "Bank Gothic",
+    "Orbitron",
+    "Rajdhani",
+    "Segoe UI",
+    sans-serif;
+  font-stretch: expanded;
+  letter-spacing: 0.03em;
+}

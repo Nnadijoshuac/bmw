@@ -1,27 +1,106 @@
 "use client";
 
-import { Suspense, useEffect, useLayoutEffect, useRef } from "react";
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, useGLTF } from "@react-three/drei";
-import { MathUtils, PerspectiveCamera } from "three";
+import { Environment, useGLTF } from "@react-three/drei";
+import { Box3, MathUtils, MeshStandardMaterial, PerspectiveCamera, Vector3 } from "three";
 
-function CarModel() {
-  const gltf = useGLTF("/scene.gltf");
+type CarModelProps = {
+  scrollProgress: number;
+};
+
+function CarModel({ scrollProgress }: CarModelProps) {
+  const gltf = useGLTF("/scene-draco.glb");
+  const { modelScale, modelOffset } = useMemo(() => {
+    const bounds = new Box3().setFromObject(gltf.scene);
+    const size = new Vector3();
+    const center = new Vector3();
+    bounds.getSize(size);
+    bounds.getCenter(center);
+
+    const longestAxis = Math.max(size.x, size.y, size.z, 1);
+    const targetLength = 7.2;
+
+    return {
+      modelScale: targetLength / longestAxis,
+      modelOffset: [-center.x, -bounds.min.y, -center.z] as [number, number, number],
+    };
+  }, [gltf.scene]);
+
+  const poseScaleBoost = MathUtils.lerp(1.35, 1, MathUtils.smootherstep(scrollProgress, 0.72, 1));
 
   useEffect(() => {
     gltf.scene.traverse((obj) => {
-      const mesh = obj as { isMesh?: boolean; castShadow?: boolean; receiveShadow?: boolean };
+      const mesh = obj as {
+        isMesh?: boolean;
+        castShadow?: boolean;
+        receiveShadow?: boolean;
+        material?: MeshStandardMaterial | MeshStandardMaterial[];
+        name?: string;
+      };
       if (mesh.isMesh) {
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+
+        const isHeadlightMesh = /headlight/i.test(mesh.name ?? "");
+        const mats = Array.isArray(mesh.material) ? mesh.material : mesh.material ? [mesh.material] : [];
+
+        for (const mat of mats) {
+          if (!mat) continue;
+          if (isHeadlightMesh || /headlight/i.test(mat.name ?? "")) {
+            mat.emissive.set("#f4f7ff");
+            mat.emissiveIntensity = 3.2;
+            mat.needsUpdate = true;
+          }
+        }
       }
     });
   }, [gltf.scene]);
 
   return (
-    <group position={[0, -1.3, -5]} rotation={[0, MathUtils.degToRad(0), 0]}>
-      <primitive object={gltf.scene} scale={2} />
+    <group position={[CAR_MODEL_POSITION.x, CAR_MODEL_POSITION.y, CAR_MODEL_POSITION.z]} rotation={[0, MathUtils.degToRad(CAR_MODEL_YAW_DEG), 0]}>
+      <group position={modelOffset} scale={modelScale * poseScaleBoost}>
+        <primitive object={gltf.scene} />
+      </group>
     </group>
+  );
+}
+
+function HeadlightRig() {
+  return (
+    <group>
+      <spotLight
+        position={[-0.9, -0.36, -3.55]}
+        target-position={[-1.1, -0.52, 6]}
+        color="#dfe9ff"
+        intensity={22}
+        distance={40}
+        angle={0.2}
+        penumbra={0.72}
+        decay={2}
+      />
+      <spotLight
+        position={[0.9, -0.36, -3.55]}
+        target-position={[1.1, -0.52, 6]}
+        color="#dfe9ff"
+        intensity={22}
+        distance={40}
+        angle={0.2}
+        penumbra={0.72}
+        decay={2}
+      />
+      <pointLight position={[-0.9, -0.36, -3.55]} color="#eef4ff" intensity={0.9} distance={4.5} />
+      <pointLight position={[0.9, -0.36, -3.55]} color="#eef4ff" intensity={0.9} distance={4.5} />
+    </group>
+  );
+}
+
+function ShadowCatcher() {
+  return (
+    <mesh position={[0, -1.34, -5]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <planeGeometry args={[11, 11]} />
+      <shadowMaterial transparent opacity={0.42} />
+    </mesh>
   );
 }
 function LeftTrackDetails() {
@@ -65,6 +144,8 @@ function LeftTrackDetails() {
   );
 }
 
+const CAR_MODEL_POSITION = { x: 0, y: -1.3, z: -5 } as const;
+const CAR_MODEL_YAW_DEG = 0;
 type CarCanvasProps = {
   scrollProgress: number;
 };
@@ -97,8 +178,8 @@ function CameraRig({ scrollProgress }: CarCanvasProps) {
     if (!(camera instanceof PerspectiveCamera)) return;
 
     const p = MathUtils.clamp(scrollProgress, 0, 1);
-    const zoomPhase = MathUtils.clamp(p / 0.28, 0, 1);
-    const orbitPhase = MathUtils.clamp((p - 0.28) / 0.72, 0, 1);
+    const zoomPhase = MathUtils.clamp(p / 0.22, 0, 1);
+    const orbitPhase = MathUtils.clamp((p - 0.18) / 0.82, 0, 1);
 
     const startX = START_CAMERA.x;
     const startY = START_CAMERA.y;
@@ -165,46 +246,44 @@ export default function CarCanvas({ scrollProgress }: CarCanvasProps) {
     <div className="h-full w-full">
       <Canvas
         shadows
+        gl={{ alpha: true }}
         dpr={[1, 1.5]}
         camera={{
           position: [START_CAMERA.x, START_CAMERA.y, START_CAMERA.z],
           fov: START_CAMERA.fov,
         }}
       >
-        <color attach="background" args={["#e4e4e4"]} />
         <hemisphereLight args={["#ffffff", "#d1eaff", 0.46]} />
         <ambientLight intensity={0.24} />
         <directionalLight
           position={[7, 8, 10]}
+          target-position={[0, -1.3, -5]}
           intensity={1.85}
           castShadow
+          shadow-bias={-0.00035}
+          shadow-normalBias={0.03}
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
           shadow-camera-near={1}
-          shadow-camera-far={70}
-          shadow-camera-left={-14}
-          shadow-camera-right={14}
-          shadow-camera-top={14}
-          shadow-camera-bottom={-14}
+          shadow-camera-far={80}
+          shadow-camera-left={-10}
+          shadow-camera-right={10}
+          shadow-camera-top={10}
+          shadow-camera-bottom={-10}
         />
         <directionalLight position={[-10, 4, 5]} intensity={0.56} />
         <directionalLight position={[2, 3, -12]} intensity={0.48} color="#ffffff" />
         <Suspense fallback={null}>
           <CameraRig scrollProgress={scrollProgress} />
           <LeftTrackDetails />
-          <CarModel />
+          <CarModel scrollProgress={scrollProgress} />
+          <HeadlightRig />
           <Environment preset="warehouse" />
-          <ContactShadows
-            position={[0, -1.34, 0]}
-            scale={18}
-            blur={1.2}
-            opacity={0.84}
-            far={7}
-          />
+          <ShadowCatcher />
         </Suspense>
       </Canvas>
     </div>
   );
 }
 
-useGLTF.preload("/scene.gltf");
+useGLTF.preload("/scene-draco.glb");
