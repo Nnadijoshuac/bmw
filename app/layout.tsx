@@ -12,6 +12,11 @@ const rajdhani = Rajdhani({
 export const metadata: Metadata = {
   title: "BMW M4 GT3",
   description: "BMW M4 GT3 landing page",
+  icons: {
+    icon: "/BMW_Logo.webp",
+    shortcut: "/BMW_Logo.webp",
+    apple: "/BMW_Logo.webp",
+  },
 };
 
 export default function RootLayout({
