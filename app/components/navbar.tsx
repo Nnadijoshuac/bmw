@@ -1,20 +1,37 @@
 "use client";
+import { useEffect, useState } from "react";
 
-import { NAV_LINKS } from "../constants/nav-links";
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
 
 export default function Navbar() {
+  const [barOpacity, setBarOpacity] = useState(1);
+
+  useEffect(() => {
+    const onHeroProgress = (event: Event) => {
+      const customEvent = event as CustomEvent<number>;
+      const progress = typeof customEvent.detail === "number" ? customEvent.detail : 0;
+      const videoProgress = clamp((progress - 1.15) / 0.45, 0, 1);
+      setBarOpacity(1 - videoProgress);
+    };
+
+    window.addEventListener("hero-progress", onHeroProgress as EventListener);
+    return () => {
+      window.removeEventListener("hero-progress", onHeroProgress as EventListener);
+    };
+  }, []);
+
   return (
-    <nav className="absolute left-4 right-4 top-4 z-30 flex items-center justify-between rounded-full border border-white/60 bg-white/40 px-4 py-3 backdrop-blur md:left-16 md:right-16 md:top-8">
-      <div className="text-sm font-bold uppercase tracking-[0.12em] text-zinc-900">BMW M4 GT3</div>
-      <ul className="flex list-none flex-wrap items-center gap-3 p-0 text-xs font-semibold text-zinc-800 md:gap-6 md:text-sm">
-        {NAV_LINKS.map((link) => (
-          <li key={`${link.href}-${link.label}`}>
-            <a href={link.href} className="transition-opacity hover:opacity-70">
-              {link.label}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <div className="absolute left-1/2 top-4 z-30 flex w-[min(96vw,1120px)] -translate-x-1/2 items-center justify-center gap-3 md:top-8 md:gap-4">
+      <img src="/BMW_Logo.webp" alt="BMW logo" className="h-10 w-10 rounded-full object-cover md:h-11 md:w-11" />
+      <nav
+        className="flex h-8 w-[min(74vw,760px)] items-center justify-end overflow-hidden rounded-l-full rounded-r-sm border border-white/60 bg-white/40 pl-5 pr-0 py-0.5 backdrop-blur md:h-9 md:pl-6"
+        style={{ opacity: barOpacity }}
+      >
+        <span className="mr-auto text-sm font-bold uppercase tracking-[0.2em] text-zinc-900 md:text-base">M4 GT3</span>
+        <img src="/m.png" alt="BMW M stripes" className="h-full w-auto translate-x-[65px] translate-y-[2px] origin-right scale-[4.2] object-contain" />
+      </nav>
+    </div>
   );
 }

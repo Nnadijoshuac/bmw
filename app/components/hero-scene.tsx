@@ -13,6 +13,11 @@ export default function HeroScene() {
   const firstCopyRef = useRef<HTMLDivElement>(null);
   const secondCopyRef = useRef<HTMLDivElement>(null);
   const statsCardsRef = useRef<HTMLDivElement>(null);
+  const carLayerRef = useRef<HTMLDivElement>(null);
+  const copyLayerRef = useRef<HTMLDivElement>(null);
+  const videoLayerRef = useRef<HTMLDivElement>(null);
+  const videoFrameRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastFeedbackRef = useRef(0);
 
@@ -44,9 +49,10 @@ export default function HeroScene() {
     };
 
     const setProgress = (value: number) => {
-      const next = Math.min(Math.max(value, 0), 1);
+      const next = Math.min(Math.max(value, 0), 1.6);
       progressRef.current = next;
       setScrollProgress(next);
+      window.dispatchEvent(new CustomEvent("hero-progress", { detail: next }));
     };
 
     const onWheel = (event: WheelEvent) => {
@@ -88,7 +94,7 @@ export default function HeroScene() {
       } else if (event.key === "Home") {
         next = 0;
       } else if (event.key === "End") {
-        next = 1;
+        next = 1.6;
       } else {
         return;
       }
@@ -123,13 +129,18 @@ export default function HeroScene() {
     const firstEl = firstCopyRef.current;
     const secondEl = secondCopyRef.current;
     const cardsEl = statsCardsRef.current;
-    if (!firstEl || !secondEl || !cardsEl) return;
+    const carLayerEl = carLayerRef.current;
+    const videoLayerEl = videoLayerRef.current;
+    const videoFrameEl = videoFrameRef.current;
+    const heroProgress = Math.min(scrollProgress, 1);
+    const videoProgress = Math.min(Math.max((scrollProgress - 1.15) / 0.45, 0), 1);
+    if (!firstEl || !secondEl || !cardsEl || !carLayerEl || !videoLayerEl || !videoFrameEl) return;
 
-    const outPhase = Math.min(Math.max((scrollProgress - 0.08) / 0.34, 0), 1);
-    const inPhase = Math.min(Math.max((scrollProgress - 0.34) / 0.26, 0), 1);
-    const secondOutPhase = Math.min(Math.max((scrollProgress - 0.72) / 0.2, 0), 1);
+    const outPhase = Math.min(Math.max((heroProgress - 0.08) / 0.34, 0), 1);
+    const inPhase = Math.min(Math.max((heroProgress - 0.34) / 0.26, 0), 1);
+    const secondOutPhase = Math.min(Math.max((heroProgress - 0.72) / 0.2, 0), 1);
     const secondInVisibility = inPhase;
-    const cardsInPhase = Math.min(Math.max((scrollProgress - 0.83) / 0.15, 0), 1);
+    const cardsInPhase = Math.min(Math.max((heroProgress - 0.78) / 0.1, 0), 1);
 
     gsap.to(firstEl, {
       opacity: 1 - outPhase,
@@ -160,7 +171,7 @@ export default function HeroScene() {
       y: 36 * (1 - cardsInPhase),
       z: -120 * (1 - cardsInPhase),
       rotationX: 9 * (1 - cardsInPhase),
-      filter: `blur(${4 * (1 - cardsInPhase)}px)`,
+      filter: `blur(${2 * (1 - cardsInPhase)}px)`,
       transformPerspective: 1200,
       transformOrigin: "50% 100%",
       duration: 0.52,
@@ -168,15 +179,62 @@ export default function HeroScene() {
       force3D: true,
       overwrite: "auto",
     });
+
+    gsap.to(carLayerEl, {
+      opacity: 1 - videoProgress,
+      scale: 1 + 0.18 * videoProgress,
+      transformOrigin: "50% 50%",
+      duration: 0.45,
+      ease: "power2.out",
+      force3D: true,
+      overwrite: "auto",
+    });
+
+    gsap.to(videoLayerEl, {
+      opacity: videoProgress,
+      duration: 0.45,
+      ease: "power2.out",
+      overwrite: "auto",
+    });
+
+    gsap.to(videoFrameEl, {
+      scale: 0.72 + 0.38 * videoProgress,
+      transformOrigin: "50% 50%",
+      duration: 0.45,
+      ease: "power2.out",
+      force3D: true,
+      overwrite: "auto",
+    });
+
+    const videoEl = videoRef.current;
+    if (videoEl) {
+      if (videoProgress > 0.03) {
+        void videoEl.play().catch(() => {
+          // Ignore play() rejection from browser policies.
+        });
+      } else {
+        videoEl.pause();
+        videoEl.currentTime = 0;
+      }
+    }
   }, [scrollProgress]);
 
   return (
     <section id="overview" className="relative h-screen overflow-hidden bg-[#e4e4e4]">
       <div className="relative h-full overflow-hidden">
-        <div className="absolute inset-0 z-10">
-          <CarCanvas scrollProgress={scrollProgress} />
+        <div ref={carLayerRef} className="absolute inset-0 z-10">
+          <CarCanvas scrollProgress={Math.min(scrollProgress, 1)} />
         </div>
-        <HeroCopy firstCopyRef={firstCopyRef} secondCopyRef={secondCopyRef} statsCardsRef={statsCardsRef} />
+        <div ref={videoLayerRef} className="pointer-events-none absolute inset-0 z-[12] opacity-0">
+          <div className="absolute left-1/2 top-1/2 aspect-video w-[min(72vw,820px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-white/20 bg-black shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
+            <div ref={videoFrameRef} className="h-full w-full [transform:translateZ(0)]">
+              <video ref={videoRef} className="h-full w-full object-cover [backface-visibility:hidden]" src="/bmw.mp4" muted loop playsInline preload="metadata" />
+            </div>
+          </div>
+        </div>
+        <div ref={copyLayerRef} className="absolute inset-0">
+          <HeroCopy firstCopyRef={firstCopyRef} secondCopyRef={secondCopyRef} statsCardsRef={statsCardsRef} />
+        </div>
       </div>
     </section>
   );
