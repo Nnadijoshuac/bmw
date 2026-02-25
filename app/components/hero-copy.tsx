@@ -36,8 +36,8 @@ function HorsepowerIcon() {
 export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }: HeroCopyProps) {
   return (
     <div className="pointer-events-none absolute inset-0">
-      <div ref={firstCopyRef} className="absolute left-4 top-24 z-20 max-w-xl text-zinc-900 md:left-16 md:top-30">
-        <h1 className={`${orbitron.className} mt-3 text-3xl font-black uppercase leading-[0.95] tracking-[0.03em] md:text-5xl`}>
+      <div ref={firstCopyRef} className="absolute left-4 top-20 z-20 max-w-[86vw] text-zinc-900 md:left-16 md:top-30 md:max-w-xl">
+        <h1 className={`${orbitron.className} mt-3 text-2xl font-black uppercase leading-[0.95] tracking-[0.03em] md:text-5xl`}>
           <span className="block text-zinc-700">No Compromise.</span>
           <span className="block text-zinc-700">No Comfort.</span>
           <span className="mt-2 block text-zinc-950 [text-shadow:0_2px_0_rgba(255,255,255,0.18),0_14px_28px_rgba(0,0,0,0.32)] md:mt-3">
@@ -49,12 +49,9 @@ export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }:
         </p>
       </div>
 
-      <div
-        ref={secondCopyRef}
-        className="absolute right-4 top-36 z-20 max-w-2xl text-right text-zinc-900 opacity-0 md:right-16 md:top-40"
-      >
+      <div ref={secondCopyRef} className="absolute right-4 top-30 z-20 max-w-[88vw] text-right text-zinc-900 opacity-0 md:right-16 md:top-40 md:max-w-2xl">
         <h2
-          className={`${orbitron.className} whitespace-nowrap text-3xl font-black uppercase leading-[0.95] tracking-[0.04em] text-right text-zinc-950 md:text-5xl`}
+          className={`${orbitron.className} whitespace-nowrap text-2xl font-black uppercase leading-[0.95] tracking-[0.04em] text-right text-zinc-950 md:text-5xl`}
         >
           1,250 kg (2,755 lbs)
         </h2>
@@ -66,7 +63,7 @@ export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }:
 
       <div
         ref={statsCardsRef}
-        className={`${rajdhani.className} stats-wrap absolute bottom-36 left-4 z-0 w-[min(96vw,1100px)] opacity-0 md:bottom-40 md:left-16`}
+        className={`${rajdhani.className} stats-wrap absolute bottom-34 left-4 z-0 w-[min(92vw,980px)] opacity-0 md:bottom-40 md:left-16 md:w-[min(96vw,1100px)]`}
       >
         <div className="stats-grid">
           <article className="glass-card glow-blue card-first-up">
@@ -111,11 +108,14 @@ export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }:
         }
 
         .stats-grid {
-          display: grid;
-          grid-template-columns: 1fr;
+          display: flex;
+          flex-wrap: nowrap;
           gap: 8px;
-          align-items: end;
-          justify-items: center;
+          align-items: flex-end;
+          justify-content: flex-start;
+          overflow-x: auto;
+          padding-bottom: 4px;
+          width: 100%;
         }
 
         .glass-card {
@@ -123,10 +123,11 @@ export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }:
           --base-lift: 0px;
           position: relative;
           width: 100%;
-          max-width: 256px;
-          min-height: 218px;
+          flex: 0 0 200px;
+          max-width: 220px;
+          min-height: 188px;
           aspect-ratio: 1 / 0.95;
-          padding: 16px 14px 12px;
+          padding: 14px 12px 10px;
           border-radius: 20px;
           border: 1px solid rgba(255, 255, 255, 0.3);
           background:
@@ -205,18 +206,18 @@ export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }:
         }
 
         .card-first-up {
-          --base-lift: -24px;
+          --base-lift: 0px;
         }
 
         .card-mid-up {
-          --base-lift: -70px;
+          --base-lift: 0px;
         }
 
         .icon-badge {
           position: absolute;
           top: -8px;
           right: 8px;
-          bottom: 70px;
+          bottom: 62px;
           left: 8px;
           display: flex;
           align-items: center;
@@ -231,7 +232,7 @@ export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }:
           width: 100%;
           height: 100%;
           object-fit: contain;
-          transform: translateY(18px) scale(1.18);
+          transform: translateY(14px) scale(1.08);
           opacity: 0.26;
           filter: grayscale(0.15) contrast(1.05) drop-shadow(0 0 10px color-mix(in srgb, var(--edge) 16%, transparent));
         }
@@ -253,7 +254,7 @@ export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }:
         }
 
         .horsepower-card .icon-badge :global(img) {
-          transform: translateY(18px) scale(1.34);
+          transform: translateY(14px) scale(1.22);
         }
 
         .card-kicker,
@@ -283,7 +284,7 @@ export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }:
         .card-title {
           margin: 0;
           width: 100%;
-          font-size: clamp(1.9rem, 2.5vw, 2.35rem);
+          font-size: clamp(1.55rem, 2.3vw, 2.2rem);
           letter-spacing: 0.05em;
           text-transform: uppercase;
           line-height: 0.94;
@@ -299,7 +300,7 @@ export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }:
         .card-sub {
           margin: 0;
           width: 100%;
-          font-size: 11px;
+          font-size: 10px;
           letter-spacing: 0.11em;
           text-transform: uppercase;
           font-weight: 700;
@@ -312,6 +313,45 @@ export default function HeroCopy({ firstCopyRef, secondCopyRef, statsCardsRef }:
         }
 
         @media (min-width: 600px) {
+          .stats-grid {
+            display: grid;
+          }
+
+          .glass-card {
+            flex: initial;
+            max-width: 256px;
+            min-height: 218px;
+            padding: 16px 14px 12px;
+          }
+
+          .card-first-up {
+            --base-lift: -24px;
+          }
+
+          .card-mid-up {
+            --base-lift: -70px;
+          }
+
+          .icon-badge {
+            bottom: 70px;
+          }
+
+          .icon-badge :global(img) {
+            transform: translateY(18px) scale(1.18);
+          }
+
+          .horsepower-card .icon-badge :global(img) {
+            transform: translateY(18px) scale(1.34);
+          }
+
+          .card-title {
+            font-size: clamp(1.9rem, 2.5vw, 2.35rem);
+          }
+
+          .card-sub {
+            font-size: 11px;
+          }
+
           .stats-grid {
             grid-template-columns: repeat(2, minmax(280px, 1fr));
             gap: 10px;

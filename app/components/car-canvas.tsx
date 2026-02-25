@@ -10,6 +10,7 @@ type CarModelProps = {
 };
 
 function CarModel({ scrollProgress }: CarModelProps) {
+  const { size } = useThree();
   const gltf = useGLTF("/scene-draco.glb");
   const { modelScale, modelOffset } = useMemo(() => {
     const bounds = new Box3().setFromObject(gltf.scene);
@@ -27,6 +28,8 @@ function CarModel({ scrollProgress }: CarModelProps) {
     };
   }, [gltf.scene]);
 
+  const isMobile = size.width < 768;
+  const mobileScaleFactor = isMobile ? 0.82 : 1;
   const poseScaleBoost = MathUtils.lerp(1.35, 1, MathUtils.smootherstep(scrollProgress, 0.72, 1));
 
   useEffect(() => {
@@ -59,7 +62,7 @@ function CarModel({ scrollProgress }: CarModelProps) {
 
   return (
     <group position={[CAR_MODEL_POSITION.x, CAR_MODEL_POSITION.y, CAR_MODEL_POSITION.z]} rotation={[0, MathUtils.degToRad(CAR_MODEL_YAW_DEG), 0]}>
-      <group position={modelOffset} scale={modelScale * poseScaleBoost}>
+      <group position={modelOffset} scale={modelScale * poseScaleBoost * mobileScaleFactor}>
         <primitive object={gltf.scene} />
       </group>
     </group>

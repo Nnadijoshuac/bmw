@@ -226,9 +226,9 @@ export default function HeroScene() {
           <CarCanvas scrollProgress={Math.min(scrollProgress, 1)} />
         </div>
         <div ref={videoLayerRef} className="pointer-events-none absolute inset-0 z-[12] opacity-0">
-          <div className="absolute left-1/2 top-1/2 aspect-video w-[min(72vw,820px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-white/20 bg-black shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
+          <div className="absolute left-1/2 top-1/2 aspect-video w-[94vw] max-w-[820px] max-h-[52svh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-md border border-white/20 bg-black shadow-[0_14px_36px_rgba(0,0,0,0.45)] sm:w-[min(88vw,760px)] sm:max-h-[58svh] sm:rounded-lg md:w-[min(72vw,820px)] md:max-h-none md:rounded-xl md:shadow-[0_20px_60px_rgba(0,0,0,0.55)]">
             <div ref={videoFrameRef} className="h-full w-full [transform:translateZ(0)]">
-              <video ref={videoRef} className="h-full w-full object-cover [backface-visibility:hidden]" src="/bmw.mp4" muted loop playsInline preload="metadata" />
+              <video ref={videoRef} className="h-full w-full object-contain md:object-cover [backface-visibility:hidden]" src="/bmw.mp4" muted loop playsInline preload="metadata" />
             </div>
           </div>
         </div>
